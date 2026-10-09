@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Административная панель — Новости ИИ</title>
+<style>
+  :root {
+    --navy: #1a2332;
+    --navy-light: #2a3648;
+    --blue: #3b82f6;
+    --blue-dark: #2563eb;
+    --purple: #8b5cf6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --gray-bg: #f4f6fa;
+    --gray-light: #e5e9f0;
+    --text: #1a2332;
+    --text-light: #64748b;
+    --white: #ffffff;
+    --shadow: 0 2px 12px rgba(26,35,50,0.08);
+    --shadow-hover: 0 8px 30px rgba(26,35,50,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  header {
+    background: var(--white);
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(26,35,50,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  header .logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .logo .badge {
+    background: var(--blue);
+    color: #fff;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+  header .actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  header .user-info {
+    color: var(--text-light);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,130,246,0.35); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #059669; transform: translateY(-2px); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-red:hover { background: #dc2626; transform: translateY(-2px); }
+  .btn-gray { background: var(--gray-light); color: var(--text); }
+  .btn-gray:hover { background: #d1d8e0; }
+  .btn-sm {
+    padding: 7px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 40px;
+  }
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .news-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+    border-left: 5px solid var(--blue);
+    animation: fadeUp 0.5s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .news-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-hover);
+  }
+  .news-card .news-date {
+    color: var(--text-light);
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .news-card .news-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 12px;
+    line-height: 1.35;
+  }
+  .news-card .news-content {
+    color: var(--text-light);
+    font-size: 15px;
+    margin-bottom: 18px;
+    flex: 1;
+    white-space: pre-wrap;
+  }
+  .news-card .news-link {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.25s;
+    align-self: flex-start;
+  }
+  .news-card .news-link:hover {
+    color: var(--blue-dark);
+    letter-spacing: 0.5px;
+  }
+  .news-card .news-author {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 14px;
+    border-top: 1px dashed var(--gray-light);
+    padding-top: 12px;
+  }
+  .admin-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff;
+    padding: 40px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+  }
+  .admin-header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .admin-header p {
+    color: #94a3b8;
+    font-size: 15px;
+  }
+  .admin-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--white);
+    padding: 8px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .admin-tab {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+    color: var(--text-light);
+  }
+  .admin-tab:hover { background: var(--gray-bg); color: var(--text); }
+  .admin-tab.active {
+    background: var(--blue);
+    color: #fff;
+  }
+  .form-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    border-top: 4px solid var(--blue);
+  }
+  .form-card h3 {
+    color: var(--navy);
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid var(--gray-light);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border 0.25s;
+    background: var(--gray-bg);
+    color: var(--text);
+  }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--white);
+  }
+  .form-group textarea { resize: vertical; min-height: 100px; }
+  .admin-post {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    border-left: 4px solid var(--purple);
+    transition: all 0.25s;
+  }
+  .admin-post:hover { transform: translateX(4px); }
+  .admin-post .info { flex: 1; }
+  .admin-post .info h4 {
+    font-size: 17px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .admin-post .info p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .admin-post .info .meta {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  .admin-post .controls {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .user-row {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid var(--green);
+  }
+  .user-row .user-info-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .user-row .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  .user-row .name {
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 16px;
+  }
+  .user-row .role {
+    font-size: 13px;
+    color: var(--text-light);
+  }
+  .role-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .role-admin { background: #fef3c7; color: #92400e; }
+  .role-staff { background: #dbeafe; color: #1e40af; }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,35,50,0.6);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(26,35,50,0.3);
+    animation: fadeUp 0.3s ease;
+  }
+  .modal h2 {
+    color: var(--navy);
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 30px;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: transform 0.4s ease;
+    font-size: 15px;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+    background: var(--white);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .empty-state .icon {
+    font-size: 60px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 44px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: fadeUp 0.5s ease;
+  }
+  .login-card h1 {
+    font-size: 26px;
+    color: var(--navy);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .login-card p {
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  .login-card .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .login-card .form-actions button {
+    flex: 1;
+  }
+  @media (max-width: 768px) {
+    header { padding: 14px 20px; flex-wrap: wrap; gap: 10px; }
+    .container { padding: 20px; }
+    .news-grid { grid-template-columns: 1fr; }
+    .admin-post { flex-direction: column; }
+    .admin-post .controls { width: 100%; justify-content: flex-end; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ЭКРАН ВХОДА -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>🔐 Вход в панель</h1>
+    <p>Введите логин и пароль для доступа</p>
+    <div class="form-group">
+      <label>Логин</label>
+      <input type="text" id="loginInput" placeholder="admin или staff">
+    </div>
+    <div class="form-group">
+      <label>Пароль</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" onkeypress="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="doLogin()">Войти</button>
+      <button class="btn btn-gray" onclick="showClient()">Клиент</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ САЙТ -->
+<div id="mainSite" style="display:none;">
+
+  <header>
+    <div class="logo">📰 Административная панель <span class="badge">AI NEWS</span></div>
+    <div class="actions" id="headerActions">
+      <!-- Сюда JS вставит кнопки в зависимости от роли -->
+    </div>
+  </header>
+
+  <!-- ПУБЛИЧНАЯ ЧАСТЬ (ЛЕНТА НОВОСТЕЙ) -->
+  <div id="publicSection" class="container">
+    <h1 style="font-size:30px; color:var(--navy); margin-bottom:8px;">Новости мира ИИ</h1>
+    <p style="color:var(--text-light); margin-bottom:24px;">Свежие публикации о искусственном интеллекте</p>
+    <div id="newsGrid" class="news-grid"></div>
+  </div>
+
+  <!-- АДМИН-ПАНЕЛЬ -->
+  <div id="adminSection" class="container" style="display:none;">
+    <div class="admin-header">
+      <h1>⚙️ Панель управления</h1>
+      <p id="adminWelcome">Добро пожаловать!</p>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('posts', this)">📝 Публикации</button>
+      <button class="admin-tab" onclick="switchAdminTab('new', this)">➕ Новая публикация</button>
+      <button class="admin-tab" id="usersTabBtn" onclick="switchAdminTab('users', this)" style="display:none;">👥 Сотрудники</button>
+    </div>
+
+    <!-- ВКЛАДКА: ПУБЛИКАЦИИ -->
+    <div id="adminTabPosts" class="admin-tab-content">
+      <div id="adminPostsList"></div>
+    </div>
+
+    <!-- ВКЛАДКА: НОВАЯ ПУБЛИКАЦИЯ -->
+    <div id="adminTabNew" class="admin-tab-content" style="display:none;">
+      <div class="form-card">
+        <h3 id="formTitle">➕ Новая публикация</h3>
+        <div class="form-group">
+          <label>Заголовок *</label>
+          <input type="text" id="postTitle" placeholder="Например: Новая модель GPT вышла в свет">
+        </div>
+        <div class="form-group">
+          <label>Текст публикации *</label>
+          <textarea id="postContent" placeholder="Подробный текст новости..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Ссылка на источник</label>
+          <input type="text" id="postLink" placeholder="https://...">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+          <button class="btn btn-green" onclick="savePost()">💾 Сохранить</button>
+          <button class="btn btn-gray" onclick="cancelEdit()">Отмена</button>
+        </div>
+        <input type="hidden" id="editingPostId" value="">
+      </div>
+    </div>
+
+    <!-- ВКЛАДКА: СОТРУДНИКИ (только для админа) -->
+    <div id="adminTabUsers" class="admin-tab-content" style="display:none;">
+      <div class="form-card">
+        <h3>➕ Создать сотрудника</h3>
+        <div class="form-group">
+          <label>Логин *</label>
+          <input type="text" id="newUserLogin" placeholder="Например: ivanov">
+        </div>
+        <div class="form-group">
+          <label>Пароль *</label>
+          <input type="text" id="newUserPassword" placeholder="Пароль для входа">
+        </div>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="createUser()">Создать сотрудника</button>
+      </div>
+      <h3 style="color:var(--navy); margin:24px 0 16px;">Все пользователи</h3>
+      <div id="usersList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal">
+    <h2 id="confirmTitle">Подтверждение</h2>
+    <p id="confirmText" style="color:var(--text-light); margin-bottom:24px;"></p>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-gray" onclick="closeConfirm()">Отмена</button>
+      <button class="btn btn-red" id="confirmBtn" onclick="confirmAction()">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- УВЕДОМЛЕНИЕ -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /* ==================== НАСТРОЙКИ SUPABASE ==================== */
+  const SUPABASE_URL = 'https://lumcedcdzklndpathoqv.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bWNlZGNkemtsbmRwYXRob3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MzY4NDUsImV4cCI6MjEwNzAxMjg0NX0.tJ8h-UZ1D01txLjeKnRQkn4J3_SXhISBYp-qgIQ5ZbM';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  /* ==================== СОСТОЯНИЕ ==================== */
+  let currentUser = null;
+  let currentAdminTab = 'posts';
+  let pendingConfirmAction = null;
+
+  /* ==================== УВЕДОМЛЕНИЯ ==================== */
+  function toast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast ' + type; }, 3000);
+  }
+
+  /* ==================== ЭКРАНЫ ==================== */
+  function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainSite').style.display = 'none';
+  }
+
+  function showClient() {
+    currentUser = null;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainSite').style.display = 'block';
+    document.getElementById('adminSection').style.display = 'none';
+    document.getElementById('publicSection').style.display = 'block';
+    document.getElementById('headerActions').innerHTML = `
+      <button class="btn btn-primary btn-sm" onclick="showLogin()">🔐 Войти</button>
+    `;
+    loadNews();
+  }
+
+  function showAdmin() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainSite').style.display = 'block';
+    document.getElementById('publicSection').style.display = 'none';
+    document.getElementById('adminSection').style.display = 'block';
+
+    const role = currentUser.role === 'admin' ? 'Администратор' : 'Сотрудник';
+    document.getElementById('adminWelcome').textContent = `Вы вошли как: ${currentUser.login} (${role})`;
+
+    if (currentUser.role === 'admin') {
+      document.getElementById('usersTabBtn').style.display = 'inline-flex';
+    } else {
+      document.getElementById('usersTabBtn').style.display = 'none';
+    }
+
+    document.getElementById('headerActions').innerHTML = `
+      <span class="user-info">👤 ${currentUser.login} (${role})</span>
+      <button class="btn btn-gray btn-sm" onclick="showClient()">🌐 На сайт</button>
+      <button class="btn btn-red btn-sm" onclick="logout()">Выйти</button>
+    `;
+
+    loadAdminPosts();
+    if (currentUser.role === 'admin') loadUsers();
+  }
+
+  /* ==================== ВХОД ==================== */
+  async function doLogin() {
+    const login = document.getElementById('loginInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
+
+    if (!login || !password) { toast('Введите логин и пароль', 'error'); return; }
+
+    const { data, error } = await supabaseClient
+      .from('app_users')
+      .select('login, role')
+      .eq('login', login)
+      .eq('password', password)
+      .maybeSingle();
+
+    if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+    if (!data) { toast('Неверный логин или пароль', 'error'); return; }
+
+    currentUser = data;
+    toast('Добро пожаловать, ' + login + '!', 'success');
+    document.getElementById('loginInput').value = '';
+    document.getElementById('passwordInput').value = '';
+    showAdmin();
+  }
+
+  function logout() {
+    currentUser = null;
+    showLogin();
+    toast('Вы вышли из системы');
+  }
+
+  /* ==================== НОВОСТИ (КЛИЕНТ) ==================== */
+  async function loadNews() {
+    const grid = document.getElementById('newsGrid');
+    grid.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>Загрузка новостей...</div>';
+
+    const { data, error } = await supabaseClient
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      grid.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div>Ошибка загрузки: ' + error.message + '</div>';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Пока нет публикаций. Заходите позже!</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    data.forEach(p => {
+      const date = new Date(p.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+      const card = document.createElement('div');
+      card.className = 'news-card';
+      card.innerHTML = `
+        <div class="news-date">📅 ${date}</div>
+        <div class="news-title">${esc(p.title)}</div>
+        <div class="news-content">${esc(p.content || '')}</div>
+        ${p.link ? `<a href="${esc(p.link)}" target="_blank" class="news-link">🔗 Читать источник →</a>` : ''}
+        ${p.author ? `<div class="news-author">✍️ Автор: ${esc(p.author)}</div>` : ''}
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  /* ==================== АДМИН-ВКЛАДКИ ==================== */
+  function switchAdminTab(tab, btn) {
+    currentAdminTab = tab;
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('adminTabPosts').style.display = tab === 'posts' ? 'block' : 'none';
+    document.getElementById('adminTabNew').style.display = tab === 'new' ? 'block' : 'none';
+    document.getElementById('adminTabUsers').style.display = tab === 'users' ? 'block' : 'none';
+
+    if (tab === 'posts') loadAdminPosts();
+    if (tab === 'users') loadUsers();
+    if (tab === 'new') cancelEdit();
+  }
+
+  /* ==================== ПУБЛИКАЦИИ (АДМИН) ==================== */
+  async function loadAdminPosts() {
+    const list = document.getElementById('adminPostsList');
+    list.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>Загрузка...</div>';
+
+    const { data, error } = await supabaseClient
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) { list.innerHTML = '<div class="empty-state">Ошибка: ' + error.message + '</div>'; return; }
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Публикаций пока нет. Создайте первую!</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    data.forEach(p => {
+      const date = new Date(p.created_at).toLocaleString('ru-RU');
+      const div = document.createElement('div');
+      div.className = 'admin-post';
+      div.innerHTML = `
+        <div class="info">
+          <h4>${esc(p.title)}</h4>
+          <p>${esc((p.content || '').substring(0, 120))}${(p.content || '').length > 120 ? '...' : ''}</p>
+          <div class="meta">📅 ${date} · ✍️ ${esc(p.author || 'без автора')} ${p.link ? '· 🔗 есть ссылка' : ''}</div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary btn-sm" onclick="editPost(${p.id})">✏️ Изменить</button>
+          <button class="btn btn-red btn-sm" onclick="askDeletePost(${p.id})">🗑 Удалить</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  async function savePost() {
+    const title = document.getElementById('postTitle').value.trim();
+    const content = document.getElementById('postContent').value.trim();
+    const link = document.getElementById('postLink').value.trim();
+    const editId = document.getElementById('editingPostId').value;
+
+    if (!title) { toast('Введите заголовок', 'error'); return; }
+    if (!content) { toast('Введите текст публикации', 'error'); return; }
+
+    if (editId) {
+      const { error } = await supabaseClient
+        .from('posts')
+        .update({ title, content, link })
+        .eq('id', editId);
+      if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+      toast('Публикация обновлена!', 'success');
+    } else {
+      const { error } = await supabaseClient
+        .from('posts')
+        .insert({ title, content, link, author: currentUser.login });
+      if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+      toast('Публикация создана!', 'success');
+    }
+
+    cancelEdit();
+    loadAdminPosts();
+    switchAdminTab('posts', document.querySelector('.admin-tab'));
+  }
+
+  async function editPost(id) {
+    const { data, error } = await supabaseClient.from('posts').select('*').eq('id', id).single();
+    if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+
+    document.getElementById('postTitle').value = data.title;
+    document.getElementById('postContent').value = data.content || '';
+    document.getElementById('postLink').value = data.link || '';
+    document.getElementById('editingPostId').value = data.id;
+    document.getElementById('formTitle').textContent = '✏️ Редактирование публикации';
+
+    const tabs = document.querySelectorAll('.admin-tab');
+    switchAdminTab('new', tabs[1]);
+  }
+
+  function cancelEdit() {
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
+    document.getElementById('postLink').value = '';
+    document.getElementById('editingPostId').value = '';
+    document.getElementById('formTitle').textContent = '➕ Новая публикация';
+  }
+
+  function askDeletePost(id) {
+    document.getElementById('confirmTitle').textContent = 'Удалить публикацию?';
+    document.getElementById('confirmText').textContent = 'Это действие нельзя отменить.';
+    document.getElementById('confirmBtn').textContent = 'Удалить';
+    pendingConfirmAction = async () => {
+      const { error } = await supabaseClient.from('posts').delete().eq('id', id);
+      if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+      toast('Публикация удалена', 'success');
+      loadAdminPosts();
+    };
+    document.getElementById('confirmModal').classList.add('active');
+  }
+
+  /* ==================== ПОЛЬЗОВАТЕЛИ (ТОЛЬКО АДМИН) ==================== */
+  async function loadUsers() {
+    if (currentUser?.role !== 'admin') return;
+    const list = document.getElementById('usersList');
+    list.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>Загрузка...</div>';
+
+    const { data, error } = await supabaseClient
+      .from('app_users')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) { list.innerHTML = '<div class="empty-state">Ошибка: ' + error.message + '</div>'; return; }
+
+    list.innerHTML = '';
+    data.forEach(u => {
+      const roleLabel = u.role === 'admin' ? 'Администратор' : 'Сотрудник';
+      const roleClass = u.role === 'admin' ? 'role-admin' : 'role-staff';
+      const div = document.createElement('div');
+      div.className = 'user-row';
+      div.innerHTML = `
+        <div class="user-info-row">
+          <div class="avatar">${u.login.charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="name">${esc(u.login)}</div>
+            <div class="role"><span class="role-badge ${roleClass}">${roleLabel}</span></div>
+          </div>
+        </div>
+        ${u.login !== 'admin' ? `<button class="btn btn-red btn-sm" onclick="askDeleteUser(${u.id}, '${esc(u.login)}')">🗑 Удалить</button>` : '<span style="color:var(--text-light); font-size:13px;">Главный админ</span>'}
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  async function createUser() {
+    if (currentUser?.role !== 'admin') { toast('Только администратор может создавать сотрудников', 'error'); return; }
+
+    const login = document.getElementById('newUserLogin').value.trim();
+    const password = document.getElementById('newUserPassword').value.trim();
+
+    if (!login || !password) { toast('Заполните логин и пароль', 'error'); return; }
+    if (password.length < 4) { toast('Пароль слишком короткий (минимум 4 символа)', 'error'); return; }
+
+    const { data: existing } = await supabaseClient.from('app_users').select('id').eq('login', login).maybeSingle();
+    if (existing) { toast('Такой логин уже существует', 'error'); return; }
+
+    const { error } = await supabaseClient
+      .from('app_users')
+      .insert({ login, password, role: 'staff' });
+
+    if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+
+    document.getElementById('newUserLogin').value = '';
+    document.getElementById('newUserPassword').value = '';
+    toast('Сотрудник создан!', 'success');
+    loadUsers();
+  }
+
+  function askDeleteUser(id, login) {
+    document.getElementById('confirmTitle').textContent = 'Удалить сотрудника?';
+    document.getElementById('confirmText').textContent = `Пользователь «${login}» будет удалён.`;
+    document.getElementById('confirmBtn').textContent = 'Удалить';
+    pendingConfirmAction = async () => {
+      const { error } = await supabaseClient.from('app_users').delete().eq('id', id);
+      if (error) { toast('Ошибка: ' + error.message, 'error'); return; }
+      toast('Сотрудник удалён', 'success');
+      loadUsers();
+    };
+    document.getElementById('confirmModal').classList.add('active');
+  }
+
+  /* ==================== МОДАЛКА ПОДТВЕРЖДЕНИЯ ==================== */
+  function confirmAction() {
+    if (pendingConfirmAction) pendingConfirmAction();
+    closeConfirm();
+  }
+  function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('active');
+    pendingConfirmAction = null;
+  }
+
+  /* ==================== УТИЛИТЫ ==================== */
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ==================== СТАРТ ==================== */
+  window.addEventListener('DOMContentLoaded', () => {
+    showClient();
+  });
+</script>
+
+</body>
+</html>
